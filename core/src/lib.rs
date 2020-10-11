@@ -18,6 +18,7 @@ pub mod keyboard;
 pub mod mouse;
 
 mod align;
+mod animation;
 mod background;
 mod color;
 mod font;
@@ -28,6 +29,7 @@ mod size;
 mod vector;
 
 pub use align::{Align, HorizontalAlignment, VerticalAlignment};
+pub use animation::AnimationState;
 pub use background::Background;
 pub use color::Color;
 pub use font::Font;
