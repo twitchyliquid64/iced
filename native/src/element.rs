@@ -1,7 +1,8 @@
 use crate::layout;
 use crate::overlay;
 use crate::{
-    Clipboard, Color, Event, Hasher, Layout, Length, Point, Rectangle, Widget,
+    AnimationState, Clipboard, Color, Event, Hasher, Layout,
+    Length, Rectangle, Point, Widget,
 };
 
 /// A generic [`Widget`].
@@ -282,6 +283,13 @@ where
         layout: Layout<'_>,
     ) -> Option<overlay::Element<'b, Message, Renderer>> {
         self.widget.overlay(layout)
+    }
+
+    /// Signals any animation needs of the [`Element`], if there is any.
+    ///
+    /// [`Element`]: struct.Element.html
+    pub fn next_animation(&self) -> AnimationState {
+        self.widget.next_animation()
     }
 }
 

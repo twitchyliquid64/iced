@@ -74,7 +74,8 @@ pub use text::Text;
 pub use text_input::TextInput;
 
 use crate::{
-    layout, overlay, Clipboard, Event, Hasher, Layout, Length, Point, Rectangle,
+    layout, overlay, AnimationState, Clipboard, Event, Hasher, Layout, Length,
+    Point, Rectangle,
 };
 
 /// A component that displays information and allows interaction.
@@ -193,5 +194,15 @@ where
         _layout: Layout<'_>,
     ) -> Option<overlay::Element<'_, Message, Renderer>> {
         None
+    }
+
+    /// Signals any animation needs of the widget, if there is any.
+    ///
+    /// Widgets which need to animate themselves are expected to override the default
+    /// implementation, returning a custom [`AnimationState`] value.
+    ///
+    /// [`AnimationState`]: enum.AnimationState.html
+    fn next_animation(&self) -> AnimationState {
+        AnimationState::NotAnimating
     }
 }

@@ -1,6 +1,7 @@
-use crate::layout;
-use crate::overlay;
-use crate::{Clipboard, Element, Event, Layout, Point, Rectangle, Size};
+use crate::{
+    layout, overlay, AnimationState, Clipboard, Element, Event, Layout, Point,
+    Rectangle, Size,
+};
 
 use std::hash::Hasher;
 
@@ -257,12 +258,16 @@ where
 
     /// Draws the [`UserInterface`] with the provided [`Renderer`].
     ///
-    /// It returns the current state of the [`MouseCursor`]. You should update
-    /// the icon of the mouse cursor accordingly in your system.
+    /// It returns the current state of the [`MouseCursor`], and the
+    /// soonest ['AnimationState'] at which the widgets need to be
+    /// serviced for animations. You should update the icon of the
+    /// mouse cursor accordingly in your system, and ensure your
+    /// event loop re-draws widgets at the appropriate time.
     ///
     /// [`UserInterface`]: struct.UserInterface.html
     /// [`Renderer`]: trait.Renderer.html
     /// [`MouseCursor`]: enum.MouseCursor.html
+    /// [`AnimationState`]: enum.AnimationState.html
     ///
     /// # Example
     /// We can finally draw our [counter](index.html#usage) by
@@ -328,7 +333,7 @@ where
         &mut self,
         renderer: &mut Renderer,
         cursor_position: Point,
-    ) -> Renderer::Output {
+    ) -> (Renderer::Output, AnimationState) {
         let viewport = Rectangle::with_size(self.bounds);
 
         let overlay = if let Some(mut overlay) =
@@ -372,19 +377,23 @@ where
                 &viewport,
             );
 
-            renderer.overlay(
+            let cursor = renderer.overlay(
                 base_primitives,
                 overlay_primitives,
                 overlay_bounds,
-            )
+            );
+
+            (cursor, self.root.next_animation())
         } else {
-            self.root.widget.draw(
+            let cursor = self.root.widget.draw(
                 renderer,
                 &Renderer::Defaults::default(),
                 Layout::new(&self.base.layout),
                 cursor_position,
                 &viewport,
-            )
+            );
+
+            (cursor, self.root.next_animation())
         }
     }
 

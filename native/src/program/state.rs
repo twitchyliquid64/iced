@@ -1,6 +1,6 @@
 use crate::{
-    Cache, Clipboard, Command, Debug, Event, Point, Program, Renderer, Size,
-    UserInterface,
+    AnimationState, Cache, Clipboard, Command, Debug, Event, Point, Program,
+    Renderer, Size, UserInterface,
 };
 
 /// The execution state of a [`Program`]. It leverages caching, event
@@ -15,6 +15,7 @@ where
     program: P,
     cache: Option<Cache>,
     primitive: <P::Renderer as Renderer>::Output,
+    next_animation: AnimationState,
     queued_events: Vec<Event>,
     queued_messages: Vec<P::Message>,
 }
@@ -44,7 +45,8 @@ where
         );
 
         debug.draw_started();
-        let primitive = user_interface.draw(renderer, cursor_position);
+        let (primitive, next_animation) =
+            user_interface.draw(renderer, cursor_position);
         debug.draw_finished();
 
         let cache = Some(user_interface.into_cache());
@@ -53,6 +55,7 @@ where
             program,
             cache,
             primitive,
+            next_animation,
             queued_events: Vec::new(),
             queued_messages: Vec::new(),
         }
@@ -133,7 +136,10 @@ where
 
         if messages.is_empty() {
             debug.draw_started();
-            self.primitive = user_interface.draw(renderer, cursor_position);
+            let (primitive, next_animation) =
+                user_interface.draw(renderer, cursor_position);
+            self.primitive = primitive;
+            self.next_animation = next_animation;
             debug.draw_finished();
 
             self.cache = Some(user_interface.into_cache());
@@ -164,7 +170,10 @@ where
             );
 
             debug.draw_started();
-            self.primitive = user_interface.draw(renderer, cursor_position);
+            let (primitive, next_animation) =
+                user_interface.draw(renderer, cursor_position);
+            self.primitive = primitive;
+            self.next_animation = next_animation;
             debug.draw_finished();
 
             self.cache = Some(user_interface.into_cache());
