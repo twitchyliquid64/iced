@@ -16,4 +16,7 @@ pub enum Event {
 
     /// A window event
     Window(window::Event),
+
+    /// An animation tick
+    Animation,
 }
