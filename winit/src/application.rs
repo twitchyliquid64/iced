@@ -2,8 +2,8 @@
 use crate::conversion;
 use crate::mouse;
 use crate::{
-    Clipboard, Color, Command, Debug, Error, Executor, Mode, Proxy, Runtime,
-    Settings, Size, Subscription,
+    AnimationState, Clipboard, Color, Command, Debug, Error, Executor, Mode,
+    Proxy, Runtime, Settings, Size, Subscription,
 };
 use iced_graphics::window;
 use iced_graphics::Viewport;
@@ -116,10 +116,7 @@ where
     E: Executor + 'static,
     C: window::Compositor<Renderer = A::Renderer> + 'static,
 {
-    use winit::{
-        event,
-        event_loop::{ControlFlow, EventLoop},
-    };
+    use winit::{event, event_loop::EventLoop};
 
     let mut debug = Debug::new();
     debug.startup_started();
@@ -182,76 +179,15 @@ where
     );
     debug.startup_finished();
 
-    event_loop.run(move |event, _, control_flow| match event {
-        event::Event::MainEventsCleared => {
-            if state.is_queue_empty() {
-                return;
-            }
-
-            let command = runtime.enter(|| {
-                state.update(
-                    viewport.logical_size(),
-                    conversion::cursor_position(
-                        cursor_position,
-                        viewport.scale_factor(),
-                    ),
-                    clipboard.as_ref().map(|c| c as _),
-                    &mut renderer,
-                    &mut debug,
-                )
-            });
-
-            // If the application was updated
-            if let Some(command) = command {
-                runtime.spawn(command);
-
-                let program = state.program();
-
-                // Update subscriptions
-                let subscription = program.subscription();
-                runtime.track(subscription);
-
-                // Update window title
-                let new_title = program.title();
-
-                if title != new_title {
-                    window.set_title(&new_title);
-
-                    title = new_title;
+    event_loop.run(move |event, _, control_flow| {
+        match event {
+            event::Event::MainEventsCleared => {
+                if state.is_queue_empty() {
+                    return;
                 }
 
-                // Update window mode
-                let new_mode = program.mode();
-
-                if mode != new_mode {
-                    window.set_fullscreen(conversion::fullscreen(
-                        window.current_monitor(),
-                        new_mode,
-                    ));
-
-                    mode = new_mode;
-                }
-
-                // Update background color
-                background_color = program.background_color();
-
-                // Update scale factor
-                let new_scale_factor = program.scale_factor();
-
-                if scale_factor != new_scale_factor {
-                    let size = window.inner_size();
-
-                    viewport = Viewport::with_physical_size(
-                        Size::new(size.width, size.height),
-                        window.scale_factor() * new_scale_factor,
-                    );
-
-                    // We relayout the UI with the new logical size.
-                    // The queue is empty, therefore this will never produce
-                    // a `Command`.
-                    //
-                    // TODO: Properly queue `WindowResized`
-                    let _ = state.update(
+                let command = runtime.enter(|| {
+                    state.update(
                         viewport.logical_size(),
                         conversion::cursor_position(
                             cursor_position,
@@ -260,81 +196,148 @@ where
                         clipboard.as_ref().map(|c| c as _),
                         &mut renderer,
                         &mut debug,
+                    )
+                });
+
+                // If the application was updated
+                if let Some(command) = command {
+                    runtime.spawn(command);
+
+                    let program = state.program();
+
+                    // Update subscriptions
+                    let subscription = program.subscription();
+                    runtime.track(subscription);
+
+                    // Update window title
+                    let new_title = program.title();
+
+                    if title != new_title {
+                        window.set_title(&new_title);
+
+                        title = new_title;
+                    }
+
+                    // Update window mode
+                    let new_mode = program.mode();
+
+                    if mode != new_mode {
+                        window.set_fullscreen(conversion::fullscreen(
+                            window.current_monitor(),
+                            new_mode,
+                        ));
+
+                        mode = new_mode;
+                    }
+
+                    // Update background color
+                    background_color = program.background_color();
+
+                    // Update scale factor
+                    let new_scale_factor = program.scale_factor();
+
+                    if scale_factor != new_scale_factor {
+                        let size = window.inner_size();
+
+                        viewport = Viewport::with_physical_size(
+                            Size::new(size.width, size.height),
+                            window.scale_factor() * new_scale_factor,
+                        );
+
+                        // We relayout the UI with the new logical size.
+                        // The queue is empty, therefore this will never produce
+                        // a `Command`.
+                        //
+                        // TODO: Properly queue `WindowResized`
+                        let _ = state.update(
+                            viewport.logical_size(),
+                            conversion::cursor_position(
+                                cursor_position,
+                                viewport.scale_factor(),
+                            ),
+                            clipboard.as_ref().map(|c| c as _),
+                            &mut renderer,
+                            &mut debug,
+                        );
+
+                        scale_factor = new_scale_factor;
+                    }
+                }
+
+                window.request_redraw();
+            }
+            event::Event::UserEvent(message) => {
+                state.queue_message(message);
+            }
+            event::Event::RedrawRequested(_) => {
+                debug.render_started();
+
+                if resized {
+                    let physical_size = viewport.physical_size();
+
+                    swap_chain = compositor.create_swap_chain(
+                        &surface,
+                        physical_size.width,
+                        physical_size.height,
                     );
 
-                    scale_factor = new_scale_factor;
+                    resized = false;
                 }
-            }
 
-            window.request_redraw();
-        }
-        event::Event::UserEvent(message) => {
-            state.queue_message(message);
-        }
-        event::Event::RedrawRequested(_) => {
-            debug.render_started();
-
-            if resized {
-                let physical_size = viewport.physical_size();
-
-                swap_chain = compositor.create_swap_chain(
-                    &surface,
-                    physical_size.width,
-                    physical_size.height,
+                let new_mouse_interaction = compositor.draw(
+                    &mut renderer,
+                    &mut swap_chain,
+                    &viewport,
+                    background_color,
+                    state.primitive(),
+                    &debug.overlay(),
                 );
 
-                resized = false;
+                debug.render_finished();
+
+                if new_mouse_interaction != mouse_interaction {
+                    window.set_cursor_icon(conversion::mouse_interaction(
+                        new_mouse_interaction,
+                    ));
+
+                    mouse_interaction = new_mouse_interaction;
+                }
+
+                *control_flow = wait_until(state.next_animation());
             }
+            event::Event::WindowEvent {
+                event: window_event,
+                ..
+            } => {
+                handle_window_event(
+                    &window_event,
+                    &window,
+                    scale_factor,
+                    control_flow,
+                    &mut cursor_position,
+                    &mut modifiers,
+                    &mut viewport,
+                    &mut resized,
+                    &mut debug,
+                );
 
-            let new_mouse_interaction = compositor.draw(
-                &mut renderer,
-                &mut swap_chain,
-                &viewport,
-                background_color,
-                state.primitive(),
-                &debug.overlay(),
-            );
-
-            debug.render_finished();
-
-            if new_mouse_interaction != mouse_interaction {
-                window.set_cursor_icon(conversion::mouse_interaction(
-                    new_mouse_interaction,
-                ));
-
-                mouse_interaction = new_mouse_interaction;
+                if let Some(event) = conversion::window_event(
+                    &window_event,
+                    viewport.scale_factor(),
+                    modifiers,
+                ) {
+                    state.queue_event(event.clone());
+                    runtime.broadcast(event);
+                }
             }
-
-            // TODO: Handle animations!
-            // Maybe we can use `ControlFlow::WaitUntil` for this.
-        }
-        event::Event::WindowEvent {
-            event: window_event,
-            ..
-        } => {
-            handle_window_event(
-                &window_event,
-                &window,
-                scale_factor,
-                control_flow,
-                &mut cursor_position,
-                &mut modifiers,
-                &mut viewport,
-                &mut resized,
-                &mut debug,
-            );
-
-            if let Some(event) = conversion::window_event(
-                &window_event,
-                viewport.scale_factor(),
-                modifiers,
-            ) {
-                state.queue_event(event.clone());
-                runtime.broadcast(event);
+            event::Event::NewEvents(cause) => {
+                if let event::StartCause::ResumeTimeReached { .. } = cause {
+                    window.request_redraw();
+                }
             }
-        }
-        _ => {
-            *control_flow = ControlFlow::Wait;
+            _ => {
+                *control_flow = wait_until(state.next_animation());
+            }
         }
     })
 }
@@ -412,5 +415,15 @@ pub fn handle_window_event(
             ..
         } => _debug.toggle(),
         _ => {}
+    }
+}
+
+fn wait_until(
+    anim: AnimationState,
+) -> winit::event_loop::ControlFlow {
+    use winit::event_loop::ControlFlow;
+    match anim {
+        AnimationState::NotAnimating => ControlFlow::Wait,
+        AnimationState::AnimateIn(i) => ControlFlow::WaitUntil(i),
     }
 }

@@ -99,6 +99,11 @@ where
         self.queued_events.is_empty() && self.queued_messages.is_empty()
     }
 
+    /// Returns the soonest moment the event loop needs to animate.
+    pub fn next_animation(&self) -> AnimationState {
+        self.next_animation
+    }
+
     /// Processes all the queued events and messages, rebuilding and redrawing
     /// the widgets of the linked [`Program`] if necessary.
     ///
