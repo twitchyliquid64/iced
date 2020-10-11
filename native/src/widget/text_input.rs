@@ -17,8 +17,8 @@ use editor::Editor;
 use crate::{
     keyboard, layout,
     mouse::{self, click},
-    text, Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle,
-    Size, Widget,
+    text, AnimationState, Clipboard, Element, Event, Hasher, Layout, Length, Point,
+    Rectangle, Size, Widget,
 };
 
 use std::u32;
@@ -280,6 +280,7 @@ where
                     }
 
                     self.state.last_click = Some(click);
+                    self.state.cursor.on_click();
                 }
 
                 self.state.is_dragging = is_clicked;
@@ -540,6 +541,14 @@ where
         self.max_width.hash(state);
         self.padding.hash(state);
         self.size.hash(state);
+    }
+
+    fn next_animation(&self) -> AnimationState {
+        if self.state.is_focused() {
+            self.state.cursor.next_animation()
+        } else {
+            AnimationState::NotAnimating
+        }
     }
 }
 

@@ -1,10 +1,14 @@
 //! Track the cursor of a text input.
-use crate::widget::text_input::Value;
+use crate::{AnimationState, widget::text_input::Value};
+
+use std::time::{Duration, Instant};
+const BLINK_MAX: Duration = Duration::from_secs(10);
 
 /// The cursor of a text input.
 #[derive(Debug, Copy, Clone)]
 pub struct Cursor {
     state: State,
+    last_ui_update: Instant,
 }
 
 /// The state of a [`Cursor`].
@@ -28,6 +32,7 @@ impl Default for Cursor {
     fn default() -> Self {
         Cursor {
             state: State::Index(0),
+            last_ui_update: Instant::now(),
         }
     }
 }
@@ -53,7 +58,40 @@ impl Cursor {
         }
     }
 
+    /// Returns true if the cursor should be visible. Conversely, a false
+    /// value indicates that the cursor should be hidden, as it is at the
+    /// invisible phase of blinking.
+    pub fn blink_visible(&self) -> bool {
+        let since = self.last_ui_update.elapsed();
+
+        if since > BLINK_MAX {
+            true
+        } else {
+            (since.subsec_millis() / 500) == 0
+        }
+    }
+
+    /// Returns the animation requirements of the cursor.
+    pub(crate) fn next_animation(&self) -> AnimationState {
+        match self.state {
+            State::Index(_) => {
+                if self.last_ui_update.elapsed() > BLINK_MAX {
+                    AnimationState::NotAnimating
+                } else {
+                    AnimationState::AnimateIn(Instant::now() + Duration::from_millis(500))
+                }
+            },
+            _ => AnimationState::NotAnimating,
+        }
+    }
+
+    /// Updates the last_ui_update state when the input is clicked.
+    pub(crate) fn on_click(&mut self) {
+        self.last_ui_update = Instant::now();
+    }
+
     pub(crate) fn move_to(&mut self, position: usize) {
+        self.last_ui_update = Instant::now();
         self.state = State::Index(position);
     }
 
@@ -96,6 +134,7 @@ impl Cursor {
         } else {
             self.state = State::Selection { start, end };
         }
+        self.last_ui_update = Instant::now();
     }
 
     pub(crate) fn select_left(&mut self, value: &Value) {

@@ -138,23 +138,27 @@ where
                             font,
                         );
 
-                    (
-                        Primitive::Quad {
-                            bounds: Rectangle {
-                                x: text_bounds.x + text_value_width,
-                                y: text_bounds.y,
-                                width: 1.0,
-                                height: text_bounds.height,
+                    if cursor.blink_visible() {
+                        (
+                            Primitive::Quad {
+                                bounds: Rectangle {
+                                    x: text_bounds.x + text_value_width,
+                                    y: text_bounds.y,
+                                    width: 1.0,
+                                    height: text_bounds.height,
+                                },
+                                background: Background::Color(
+                                    style_sheet.value_color(),
+                                ),
+                                border_radius: 0,
+                                border_width: 0,
+                                border_color: Color::TRANSPARENT,
                             },
-                            background: Background::Color(
-                                style_sheet.value_color(),
-                            ),
-                            border_radius: 0,
-                            border_width: 0,
-                            border_color: Color::TRANSPARENT,
-                        },
-                        offset,
-                    )
+                            offset,
+                        )
+                    } else {
+                        (Primitive::None, offset)
+                    }
                 }
                 cursor::State::Selection { start, end } => {
                     let left = start.min(end);
