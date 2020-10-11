@@ -2,8 +2,8 @@
 use crate::layout;
 use crate::overlay;
 use crate::{
-    Align, Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle,
-    Widget,
+    Align, AnimationState, Clipboard, Element, Event, Hasher,
+    Layout, Length, Point, Rectangle, Widget,
 };
 
 use std::hash::Hash;
@@ -220,6 +220,14 @@ where
             .zip(layout.children())
             .filter_map(|(child, layout)| child.widget.overlay(layout))
             .next()
+    }
+
+    fn next_animation(&self) -> AnimationState {
+        self.children
+            .iter()
+            .map(|child| child.next_animation())
+            .min()
+            .unwrap_or(AnimationState::NotAnimating)
     }
 }
 

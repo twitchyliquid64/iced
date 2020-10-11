@@ -2,7 +2,9 @@ use crate::container;
 use crate::layout;
 use crate::overlay;
 use crate::pane_grid::{self, TitleBar};
-use crate::{Clipboard, Element, Event, Hasher, Layout, Point, Size};
+use crate::{
+    AnimationState, Clipboard, Element, Event, Hasher, Layout, Point, Size,
+};
 
 /// The content of a [`Pane`].
 ///
@@ -206,6 +208,16 @@ where
         };
 
         self.body.overlay(body_layout)
+    }
+
+    pub(crate) fn next_animation(&self) -> AnimationState {
+        let title_anim = if let Some(title_bar) = &self.title_bar {
+            title_bar.next_animation()
+        } else {
+            AnimationState::NotAnimating
+        };
+
+        std::cmp::min(title_anim, self.body.next_animation())
     }
 }
 

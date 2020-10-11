@@ -386,6 +386,10 @@ where
             .overlay(layout)
             .map(move |overlay| overlay.map(mapper))
     }
+
+    fn next_animation(&self) -> AnimationState {
+        self.widget.next_animation()
+    }
 }
 
 struct Explain<'a, Message, Renderer: crate::Renderer> {

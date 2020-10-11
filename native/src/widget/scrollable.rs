@@ -1,7 +1,8 @@
 //! Navigate an endless amount of content with a scrollbar.
 use crate::{
-    column, layout, mouse, overlay, Align, Clipboard, Column, Element, Event,
-    Hasher, Layout, Length, Point, Rectangle, Size, Vector, Widget,
+    column, layout, mouse, overlay, Align, AnimationState, Clipboard, Column,
+    Element, Event, Hasher, Layout, Length, Point, Rectangle, Size, Vector,
+    Widget,
 };
 
 use std::{f32, hash::Hash, u32};
@@ -383,6 +384,10 @@ where
 
                 overlay.translate(Vector::new(0.0, -(offset as f32)))
             })
+    }
+
+    fn next_animation(&self) -> AnimationState {
+        self.content.next_animation()
     }
 }
 

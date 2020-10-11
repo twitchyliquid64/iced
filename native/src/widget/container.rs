@@ -2,8 +2,8 @@
 use std::hash::Hash;
 
 use crate::{
-    layout, overlay, Align, Clipboard, Element, Event, Hasher, Layout, Length,
-    Point, Rectangle, Widget,
+    layout, overlay, Align, AnimationState, Clipboard, Element, Event, Hasher,
+    Layout, Length, Point, Rectangle, Widget,
 };
 
 use std::u32;
@@ -222,6 +222,10 @@ where
         layout: Layout<'_>,
     ) -> Option<overlay::Element<'_, Message, Renderer>> {
         self.content.overlay(layout.children().next().unwrap())
+    }
+
+    fn next_animation(&self) -> AnimationState {
+        self.content.next_animation()
     }
 }
 

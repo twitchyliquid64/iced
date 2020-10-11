@@ -1,7 +1,8 @@
 use crate::layout;
 use crate::pane_grid;
 use crate::{
-    Clipboard, Element, Event, Hasher, Layout, Point, Rectangle, Size,
+    AnimationState, Clipboard, Element, Event, Hasher, Layout, Point,
+    Rectangle, Size,
 };
 
 /// The title bar of a [`Pane`].
@@ -262,6 +263,14 @@ where
                 renderer,
                 clipboard,
             );
+        }
+    }
+
+    pub(crate) fn next_animation(&self) -> AnimationState {
+        if let Some(controls) = &self.controls {
+            controls.next_animation()
+        } else {
+            AnimationState::NotAnimating
         }
     }
 }

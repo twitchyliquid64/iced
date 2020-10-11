@@ -29,8 +29,9 @@ pub use state::{Focus, State};
 pub use title_bar::TitleBar;
 
 use crate::{
-    container, keyboard, layout, mouse, overlay, row, text, Clipboard, Element,
-    Event, Hasher, Layout, Length, Point, Rectangle, Size, Vector, Widget,
+    container, keyboard, layout, mouse, overlay, row, text, AnimationState,
+    Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle, Size,
+    Vector, Widget,
 };
 
 /// A collection of panes distributed using either vertical or horizontal splits
@@ -651,6 +652,14 @@ where
             .zip(layout.children())
             .filter_map(|((_, pane), layout)| pane.overlay(layout))
             .next()
+    }
+
+    fn next_animation(&self) -> AnimationState {
+        self.elements
+            .iter()
+            .map(|(_, child)| child.next_animation())
+            .min()
+            .unwrap_or(AnimationState::NotAnimating)
     }
 }
 
