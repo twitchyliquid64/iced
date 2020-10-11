@@ -49,6 +49,7 @@ members = [
     "glow",
     "glutin",
     "native",
+    "raqote",
     "style",
     "web",
     "wgpu",

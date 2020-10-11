@@ -1,5 +1,5 @@
 /// A font.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Font {
     /// The default font.
     ///

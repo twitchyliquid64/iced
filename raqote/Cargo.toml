@@ -1,0 +1,37 @@
+[package]
+name = "iced_raqote"
+version = "0.1.0"
+authors = ["Markus Røyset <maroider@protonmail.com>"]
+edition = "2018"
+description = "A raqote renderer for iced"
+license = "MIT AND OFL-1.1"
+repository = "https://github.com/hecrj/iced"
+
+[features]
+canvas = ["iced_graphics/canvas"]
+# default_system_font = ["iced_graphics/font-source"]
+# Not supported yet!
+image = []
+# svg = []
+
+[dependencies]
+bytemuck = "1.2"
+fontdue = { git = "https://github.com/mooman219/fontdue", rev = "3e2f51f" }
+log = "0.4"
+
+[dependencies.iced_native]
+version = "0.2"
+path = "../native"
+
+[dependencies.iced_graphics]
+version = "0.1"
+path = "../graphics"
+features = ["font-fallback", "font-icons"]
+
+[dependencies.raqote]
+version = "0.8.0"
+default-features = false
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--cfg", "docsrs"]
+all-features = true
