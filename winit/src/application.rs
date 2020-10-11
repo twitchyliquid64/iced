@@ -333,7 +333,6 @@ where
             event::Event::NewEvents(cause) => {
                 if let event::StartCause::ResumeTimeReached { .. } = cause {
                     state.queue_event(crate::Event::Animation);
-                    window.request_redraw();
                 }
             }
             _ => {
