@@ -37,6 +37,8 @@ tokio = ["iced_futures/tokio"]
 async-std = ["iced_futures/async-std"]
 # Enables advanced color conversion via `palette`
 palette = ["iced_core/palette"]
+# Enables the `iced_raqote` renderer
+raqote = ["iced_raqote"]
 
 [badges]
 maintenance = { status = "actively-developed" }
@@ -86,6 +88,7 @@ iced_winit = { version = "0.1", path = "winit" }
 iced_glutin = { version = "0.1", path = "glutin", optional = true }
 iced_wgpu = { version = "0.2", path = "wgpu", optional = true }
 iced_glow = { version = "0.1", path = "glow", optional = true}
+iced_raqote = { version = "0.1", path = "raqote", optional = true}
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 iced_web = { version = "0.2", path = "web" }

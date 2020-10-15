@@ -29,7 +29,9 @@ path = "../graphics"
 features = ["font-fallback", "font-icons"]
 
 [dependencies.raqote]
-version = "0.8.0"
+path = "/home/xxx/projects/crap/raqote"
+version = "0.8.1-alpha.0"
+features = ["png"]
 default-features = false
 
 [package.metadata.docs.rs]

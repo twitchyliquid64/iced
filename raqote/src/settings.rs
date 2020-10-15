@@ -18,6 +18,9 @@ pub struct Settings {
 
     /// The antialiasing strategy that will be used for triangle primitives.
     pub antialiasing: Option<Antialiasing>,
+
+    /// Where to write the frames.
+    pub output: Option<&'static str>,
 }
 
 impl Default for Settings {
@@ -26,6 +29,7 @@ impl Default for Settings {
             default_font: None,
             default_text_size: 20,
             antialiasing: None,
+            output: Some("/tmp/ye.png"),
         }
     }
 }

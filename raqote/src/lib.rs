@@ -12,7 +12,6 @@ mod backend;
 
 pub mod settings;
 pub mod widget;
-#[cfg(feature = "blit")]
 pub mod window;
 
 pub use backend::Backend;
@@ -21,10 +20,13 @@ pub use settings::Settings;
 #[doc(no_inline)]
 pub use widget::*;
 
-pub use iced_graphics::Viewport;
+pub use iced_graphics::{Error, Viewport};
 pub use iced_native::*;
 
 pub use raqote;
+
+#[doc(no_inline)]
+pub use widget::*;
 
 /// A [`raqote`] graphics renderer for [`iced`].
 ///

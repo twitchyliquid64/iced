@@ -202,7 +202,7 @@ pub mod time;
 #[cfg(all(
     not(target_arch = "wasm32"),
     not(feature = "glow"),
-    feature = "wgpu"
+    any(feature = "wgpu", feature="raqote"),
 ))]
 use iced_winit as runtime;
 
@@ -212,9 +212,16 @@ use iced_glutin as runtime;
 #[cfg(all(
     not(target_arch = "wasm32"),
     not(feature = "glow"),
+    not(feature = "raqote"),
     feature = "wgpu"
 ))]
 use iced_wgpu as renderer;
+
+#[cfg(all(
+    not(target_arch = "wasm32"),
+    feature = "raqote"
+))]
+use iced_raqote as renderer;
 
 #[cfg(all(not(target_arch = "wasm32"), feature = "glow"))]
 use iced_glow as renderer;
